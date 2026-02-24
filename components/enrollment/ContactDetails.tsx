@@ -124,50 +124,83 @@ const ContactDetails = forwardRef<ContactDetailsRef, ContactDetailsProps>(
           </div>
         </div>
 
-        <div className="grid sm:grid-cols-[180px_1fr] gap-4">
-          <div>
-            <Label className="text-base font-medium text-foreground mb-1">
-              Phone Code <span className="text-destructive">*</span>
-            </Label>
-            <Select
-              value={contact.phone_code}
-              onValueChange={(v) => onUpdate({ phone_code: v })}
-            >
-              <SelectTrigger className={errors.phone_code ? "border-destructive" : ""}>
-                <Phone className="w-4 h-4 mr-1 text-muted-foreground" />
-                <SelectValue placeholder="Code" />
-              </SelectTrigger>
-              <SelectContent>
-                {PHONE_CODES.map((p) => (
-                  <SelectItem key={p.code} value={p.dial}>
-                    {p.dial} ({p.country})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.phone_code && (
-              <p className="field-error text-sm">{errors.phone_code}</p>
-            )}
-          </div>
+        {/* Phone Number (mobile: one label + stuck row, desktop: split labels) */}
+        <div className="grid gap-2">
+          {/* Mobile label only */}
+          <Label className="sm:hidden text-base font-medium text-foreground">
+            Phone Number <span className="text-destructive">*</span>
+            <span className="ml-2 text-sm text-[#C41E71] italic">
+              Omit the leading '0' (e.g., 1xxxxxxx instead of 01xxxxxxx)
+            </span>
+          </Label>
 
-          <div>
-            <Label
-              htmlFor="contact_number"
-              className="text-base font-medium text-foreground mb-1"
-            >
-              Contact Number <span className="text-destructive">*</span><span className="text-sm text-[#C41E71] italic"> Omit the leading '0' (e.g., 1xxxxxxx instead of 01xxxxxxx)</span>
-            </Label>
-            <Input
-              id="contact_number"
-              value={contact.contact_number}
-              onChange={(e) => onUpdate({ contact_number: e.target.value.replace(/\D/g, "") }) }
-              inputMode="numeric"
-              placeholder="e.g. 123456789"
-              className={errors.contact_number ? "border-destructive" : ""}
-            />
-            {errors.contact_number && (
-              <p className="field-error text-sm">{errors.contact_number}</p>
-            )}
+          {/* Row (always in one row; on desktop it becomes the 180px + 1fr layout) */}
+          <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[180px_1fr] gap-0 sm:gap-4">
+            {/* Phone Code */}
+            <div>
+              {/* Desktop label only */}
+              <Label className="hidden sm:block text-base font-medium text-foreground mb-1">
+                Phone Code <span className="text-destructive">*</span>
+              </Label>
+
+              <Select value={contact.phone_code} onValueChange={(v) => onUpdate({ phone_code: v })}>
+                <SelectTrigger className={errors.phone_code ? "border-destructive" : ""}>
+                  {contact.phone_code ? (
+                    <span className="text-sm text-foreground">{contact.phone_code}</span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">🇲🇾 +60</span>
+                  )}
+                </SelectTrigger>
+
+                <SelectContent>
+                  {PHONE_CODES.map((p) => (
+                    // Store dial only (selected value shows +60)
+                    <SelectItem key={p.code} value={p.dial}>
+                      {/* Dropdown shows full text */}
+                      {p.dial} ({p.country})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {errors.phone_code && <p className="field-error text-sm sm:mt-1">{errors.phone_code}</p>}
+            </div>
+
+            {/* Contact Number */}
+            <div>
+              {/* Desktop label only */}
+              <Label
+                htmlFor="contact_number"
+                className="hidden sm:block text-base font-medium text-foreground mb-1"
+              >
+                Contact Number <span className="text-destructive">*</span>
+                <span className="text-sm text-[#C41E71] italic">
+                  {" "}
+                  Omit the leading '0' (e.g., 1xxxxxxx instead of 01xxxxxxx)
+                </span>
+              </Label>
+
+              <Input
+                id="contact_number"
+                value={contact.contact_number}
+                onChange={(e) =>
+                  onUpdate({ contact_number: e.target.value.replace(/\D/g, "") })
+                }
+                inputMode="numeric"
+                placeholder="e.g. 123456789"
+                className={[
+                  // stick together with select on mobile
+                  "rounded-l-none",
+                  // back to normal on desktop
+                  "sm:rounded-l-md",
+                  errors.contact_number ? "border-destructive" : "",
+                ].join(" ")}
+              />
+
+              {errors.contact_number && (
+                <p className="field-error text-sm sm:mt-1">{errors.contact_number}</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -190,7 +223,7 @@ const ContactDetails = forwardRef<ContactDetailsRef, ContactDetailsProps>(
         <div>
           <Label className="flex items-center gap-2 text-base font-medium text-foreground mb-1">
             <MapPin className="w-4 h-4 text-muted-foreground" />
-            Billing Country <span className="text-destructive">*</span>
+            Resident Country <span className="text-destructive">*</span>
           </Label>
           <Select
             value={contact.billing_country}

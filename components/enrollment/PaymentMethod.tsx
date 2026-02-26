@@ -1,10 +1,5 @@
 import { useEffect, useImperativeHandle, forwardRef, useMemo, useState } from "react";
-import {
-  PaymentType,
-  PaymentOption,
-  PAYMENT_METHODS,
-  INSTALLMENT_PROVIDERS,
-} from "@/data/enrollmentData";
+import { PaymentType, PaymentOption, PAYMENT_METHODS, INSTALLMENT_PROVIDERS, } from "@/data/enrollmentData";
 import { CreditCard, Landmark } from "lucide-react";
 import SectionHeader from "./SectionHeader";
 
@@ -104,11 +99,7 @@ const PaymentMethod = forwardRef<PaymentMethodRef, PaymentMethodProps>(
         {/* ===== Non-installment (deposit / full) ===== */}
         {!isInstallment ? (
           <div className="enrollment-card">
-            <SectionHeader
-              number={4}
-              title="Select Payment Option"
-              subtitle="Choose your preferred payment method"
-            />
+            <SectionHeader number={4} title="Select Payment Option" subtitle="Choose your preferred payment method" />
 
             {/* Option buttons */}
             <div className="grid sm:grid-cols-2 gap-3">
@@ -193,17 +184,13 @@ const PaymentMethod = forwardRef<PaymentMethodRef, PaymentMethodProps>(
               </div>
             )}
 
-            {/* ✅ Error message at bottom of SAME CARD */}
+            {/* Error message at bottom of SAME CARD */}
             {optionError && <p className="field-error mt-4">{optionError}</p>}
           </div>
         ) : (
           /* ===== Installment (tile grid) ===== */
           <div className="enrollment-card">
-            <SectionHeader
-              number={4}
-              title="Choose Payment Method"
-              subtitle="Select your installment bank & plan"
-            />
+            <SectionHeader number={4} title="Choose Payment Method" subtitle="Select your installment bank & plan" />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {INSTALLMENT_PROVIDERS.map((provider) => {
@@ -310,7 +297,7 @@ const PaymentMethod = forwardRef<PaymentMethodRef, PaymentMethodProps>(
               })}
             </div>
 
-            {/* ✅ Error message at bottom of SAME CARD (installment) */}
+            {/* Error message at bottom of SAME CARD (installment) */}
             {optionError && <p className="field-error mt-4">{optionError}</p>}
           </div>
         )}

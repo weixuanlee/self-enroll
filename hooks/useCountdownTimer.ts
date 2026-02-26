@@ -5,14 +5,28 @@ import { useState, useEffect, useCallback, useRef } from "react";
 const TIMER_DURATION = 60 * 60; // 60 minutes in seconds
 const STORAGE_KEY = "enrollment_timer_start";
 
-export function useCountdownTimer(onExpire?: () => void) {
-  const onExpireRef = useRef(onExpire);
-  onExpireRef.current = onExpire;
+type UseCountdownTimerOptions = {
+  onExpire?: () => void;
+  onExpireStartLoading?: () => void; // show overlay before clearing/reload
+  loadingDelayMs?: number; // delay so user can see overlay
+};
+
+// Backward compatible: accepts function OR options object
+export function useCountdownTimer(arg?: (() => void) | UseCountdownTimerOptions) {
+  const options: UseCountdownTimerOptions =
+    typeof arg === "function" ? { onExpire: arg } : arg ?? {};
+
+  const onExpireRef = useRef(options.onExpire);
+  const onExpireStartLoadingRef = useRef(options.onExpireStartLoading);
+  const loadingDelayMsRef = useRef(options.loadingDelayMs ?? 800);
+
+  onExpireRef.current = options.onExpire;
+  onExpireStartLoadingRef.current = options.onExpireStartLoading;
+  loadingDelayMsRef.current = options.loadingDelayMs ?? 800;
 
   const [remaining, setRemaining] = useState<number | null>(null);
   const reloadedRef = useRef(false);
 
-  // Get or create start time (browser only)
   const getStartTime = (): number => {
     if (typeof window === "undefined") return Date.now();
 
@@ -26,7 +40,7 @@ export function useCountdownTimer(onExpire?: () => void) {
 
   const restartAndReload = useCallback(() => {
     if (typeof window === "undefined") return;
-    if (reloadedRef.current) return; // prevent reload loops within same render
+    if (reloadedRef.current) return;
     reloadedRef.current = true;
 
     // reset timer start so next load starts fresh 60 minutes
@@ -34,7 +48,6 @@ export function useCountdownTimer(onExpire?: () => void) {
     const now = Date.now();
     sessionStorage.setItem(STORAGE_KEY, String(now));
 
-    // reload page
     window.location.reload();
   }, []);
 
@@ -43,13 +56,21 @@ export function useCountdownTimer(onExpire?: () => void) {
 
     let start = getStartTime();
 
-    const updateRemaining = () => {
+    const updateRemaining = async () => {
       const elapsed = Math.floor((Date.now() - start) / 1000);
       const r = Math.max(TIMER_DURATION - elapsed, 0);
       setRemaining(r);
 
       if (r <= 0) {
-        // Optional callback (e.g., clear form state), but page will reload anyway
+        if (reloadedRef.current) return;
+
+        // show loading overlay FIRST
+        onExpireStartLoadingRef.current?.();
+
+        // let user see loading briefly
+        await new Promise((res) => setTimeout(res, loadingDelayMsRef.current));
+
+        // clear + reload
         try {
           onExpireRef.current?.();
         } finally {
@@ -58,13 +79,14 @@ export function useCountdownTimer(onExpire?: () => void) {
       }
     };
 
-    updateRemaining(); // run immediately
-    const interval = setInterval(updateRemaining, 1000);
+    void updateRemaining();
+    const interval = setInterval(() => {
+      void updateRemaining();
+    }, 1000);
 
-    // If user calls resetTimer, we update `start` too
     const onStorageReset = () => {
       start = getStartTime();
-      updateRemaining();
+      void updateRemaining();
     };
 
     window.addEventListener("enrollment_timer_reset", onStorageReset);
@@ -83,7 +105,6 @@ export function useCountdownTimer(onExpire?: () => void) {
     sessionStorage.setItem(STORAGE_KEY, String(now));
     setRemaining(TIMER_DURATION);
 
-    // notify effect to pick up the new start time immediately
     window.dispatchEvent(new Event("enrollment_timer_reset"));
   }, []);
 
@@ -99,7 +120,7 @@ export function useCountdownTimer(onExpire?: () => void) {
   const minutes = Math.floor(remaining / 60);
   const seconds = remaining % 60;
 
-  const display = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  const display = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart( 2, "0" )}`;
 
   return { remaining, display, resetTimer };
 }

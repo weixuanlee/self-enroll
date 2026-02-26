@@ -35,7 +35,7 @@
   --radius: var(--radius);
 }
 
-/* Theme values (tuned to match your screenshots) */
+/* Theme values */
 :root {
   /* Page background (light blue) */
   --background: 210 20% 98%;
@@ -76,7 +76,7 @@
   --destructive-foreground: 0 0% 100%;
   --success: 142 71% 45%;
 
-  /* Rounded like screenshot cards */
+  /* Rounded cards */
   --radius: 0.9rem;
 }
 
@@ -85,7 +85,7 @@ body {
   color: hsl(var(--foreground));
 }
 
-/* Utility classes used by your enrollment components */
+/* Utility classes used by enrollment components */
 @layer components {
   .enrollment-card {
     @apply bg-card border border-border rounded-[var(--radius)] shadow-sm;

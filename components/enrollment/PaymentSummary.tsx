@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  PackageData,
-  PaymentType,
-  PaymentOption,
-  PAYMENT_METHODS,
-  INSTALLMENT_PROVIDERS,
-} from "@/data/enrollmentData";
+import { PackageData, PaymentType, PaymentOption, PAYMENT_METHODS, INSTALLMENT_PROVIDERS, } from "@/data/enrollmentData";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import SectionHeader from "./SectionHeader";
 
@@ -21,8 +15,10 @@ interface PaymentSummaryProps {
   depositAmount: number;
   onPrev: () => void;
 
-  // ✅ new: validate Step 4 and show error in Step 4 card
   onValidatePaymentMethod: () => boolean;
+
+  // ADD THIS (global overlay control)
+  setIsLoading: (v: boolean) => void;
 }
 
 const PaymentSummary = ({
@@ -36,6 +32,7 @@ const PaymentSummary = ({
   depositAmount,
   onPrev,
   onValidatePaymentMethod,
+  setIsLoading,
 }: PaymentSummaryProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -56,16 +53,31 @@ const PaymentSummary = ({
     `RM ${v.toLocaleString("en-MY", { minimumFractionDigits: 2 })}`;
 
   const handleSubmit = async () => {
-    if (isSubmitting) return;
+    if (isSubmitting) return; // prevent double submit
 
-    // ✅ validate step 4 first; if invalid, PaymentMethod will show error
-    const ok = onValidatePaymentMethod();
-    if (!ok) return;
-
+    // overlay appears immediately when clicked
     setIsSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsSubmitting(false);
-    setIsComplete(true);
+    setIsLoading(true);
+
+    // validate step 4; if invalid -> hide overlay and stop
+    const ok = onValidatePaymentMethod();
+    if (!ok) {
+      setIsLoading(false);
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      // Simulate API call
+      await new Promise((r) => setTimeout(r, 1500));
+      setIsComplete(true);
+    } catch (e) {
+      // If API fails, hide overlay and show error (you can toast here)
+      // For now just stop
+    } finally {
+      setIsLoading(false);
+      setIsSubmitting(false);
+    }
   };
 
   if (isComplete) {
@@ -151,19 +163,11 @@ const PaymentSummary = ({
       </div>
 
       <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={onPrev}
-          className="h-11 px-10 rounded-xl border-2 border-[#BFD9EE] bg-white text-[#0F172A] hover:bg-[#F2FAFF]"
-        >
+        <Button variant="outline" onClick={onPrev} className="h-11 px-10 rounded-xl border-2 border-[#BFD9EE] bg-white text-[#0F172A] hover:bg-[#F2FAFF]" disabled={isSubmitting}>
           Back
         </Button>
 
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          className="h-11 px-10 rounded-xl bg-[#C41E71] text-white hover:bg-[#C2176B]"
-        >
+        <Button onClick={handleSubmit} disabled={isSubmitting} className="h-11 px-10 rounded-xl bg-[#C41E71] text-white hover:bg-[#C2176B]">
           {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
           Proceed to Payment
         </Button>

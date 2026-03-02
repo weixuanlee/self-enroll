@@ -344,12 +344,13 @@ const EnrollmentSummary = ({
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Card 1 */}
       <div className="enrollment-card">
-        <SectionHeader number={1} title="Contact Details & Enrollment Summary" subtitle="Enter your details and review package" />
+        <SectionHeader number={1} title="Contact Details" subtitle="Enter your details" />
 
         {contactDetailsSlot}
 
         <div className="border-t border-border mt-6 pt-6">
-          <h3 className="text-lg font-semibold text-foreground mb-3">Enrollment Summary</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Enrollment Summary</h3>
+          <p className="text-sm text-muted-foreground -mt-2 mb-3">review package</p>
 
           <div className="bg-accent/50 rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-start">
